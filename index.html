@@ -190,6 +190,7 @@ body.presentation .toolbar,body.presentation .title{display:none}body.presentati
     <div class="reveal-title" id="revealTitle"></div>
     <div class="reveal-text" id="revealText"></div>
     <button class="btn" id="answerBtn" onclick="showAnswer()">إظهار الإجابة</button>
+    <button class="btn danger" id="skipQuestionBtn" onclick="closeReveal()">خروج بدون احتساب</button>
     <div class="answer-box" id="answerBox"></div>
     <div class="award-row" id="awardRow"></div>
   </div>
@@ -335,6 +336,7 @@ function openTile(item,btn){
   document.getElementById('revealModal').classList.add('show');
   document.getElementById('answerBox').classList.remove('show');
   document.getElementById('answerBtn').style.display='none';
+  document.getElementById('skipQuestionBtn').style.display='none';
   document.getElementById('awardRow').classList.remove('hidden');
   document.getElementById('awardRow').innerHTML='';
   ({question:()=>showQuestion(item),bomb:showBomb,nuclear:showNuclear,treasure:()=>showTreasure(item),steal:()=>showSteal(item),royal:showRoyal,double:showDouble,shield:showShield,devil:showDevil}[item.type])();
@@ -344,14 +346,21 @@ function teamButtons(fn,extra=''){return teams.map((t,i)=>`<button class="btn" o
 function setReveal(icon,title,text){document.getElementById('revealIcon').textContent=icon;document.getElementById('revealTitle').textContent=title;document.getElementById('revealText').textContent=text}
 
 function showQuestion(item){
-  setReveal('🧠',`لغز بـ ${item.p} نقطة`,item.q);
+  setReveal('🧠','سؤال',item.q);
   const explanation = item.e ? `<div style="margin-top:10px;font-size:20px;line-height:1.6;color:#fde68a">الشرح: ${item.e}</div>` : '';
-  document.getElementById('answerBox').innerHTML = `<strong>الإجابة:</strong> ${item.a}${explanation}`;
+  document.getElementById('answerBox').innerHTML = `<strong>الإجابة:</strong> ${item.a}<div style="margin-top:10px;font-size:22px;color:#fde68a"><strong>قيمة السؤال:</strong> ${item.p} نقطة</div>${explanation}`;
   document.getElementById('answerBtn').style.display='inline-block';
+  document.getElementById('skipQuestionBtn').style.display='inline-block';
   document.getElementById('awardRow').classList.add('hidden');
   document.getElementById('awardRow').innerHTML=teamButtons('awardQuestion',`<button class="btn" onclick="finishTile()">لا أحد</button>`);
 }
-function showAnswer(){document.getElementById('answerBox').classList.add('show');document.getElementById('answerBtn').style.display='none';document.getElementById('awardRow').classList.remove('hidden')}
+function showAnswer(){
+  document.getElementById('answerBox').classList.add('show');
+  document.getElementById('answerBtn').style.display='none';
+  document.getElementById('skipQuestionBtn').style.display='none';
+  if(current?.item?.type==='question') document.getElementById('revealTitle').textContent=`الإجابة — ${current.item.p} نقطة`;
+  document.getElementById('awardRow').classList.remove('hidden')
+}
 function awardQuestion(i){addScore(i,current.item.p);finishTile()}
 
 function showBomb(){document.body.classList.add('boom');setTimeout(()=>document.body.classList.remove('boom'),950);launchFire(44);setReveal('💣','انفجرت القنبلة!','اختر الفريق الذي ستطبق عليه العقوبة');document.getElementById('awardRow').innerHTML=teamButtons('applyBomb',`<button class="btn" onclick="finishTile()">إلغاء</button>`)}
